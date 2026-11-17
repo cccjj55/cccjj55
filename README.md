@@ -1,4 +1,4 @@
-**Robot simulation · Multiphysics CAE · Real-time control** — I care whether the number reproduces, not whether the demo runs.
+**Robot simulation · Multiphase CAE · Real-time control.** Currently measuring how fast simulators actually run, and at what accuracy.
 
 [![Email](https://img.shields.io/badge/-13567058401%40163.com-d14836?style=flat)](mailto:13567058401@163.com)
 [![CI](https://github.com/cccjj55/ros2-warehouse-amr/actions/workflows/ci.yml/badge.svg)](https://github.com/cccjj55/ros2-warehouse-amr/actions)
