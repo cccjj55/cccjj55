@@ -9,8 +9,8 @@
 
 | 项目 | 技术栈 | 证据 | 状态 |
 | --- | --- | --- | --- |
-| 仿真吞吐基准 `sim-throughput-benchmark` | Python · MuJoCo · MJX · JAX · CUDA | [repo](https://github.com/cccjj55/sim-throughput-benchmark) · `results/latest.md` · CI | 🟡 骨架 + dummy 后端跑通，GPU 数据待采 |
-| 吞吐–精度 Pareto | JAX · MJX · 数值积分 | 设计已写完（`docs/`） | ⬜ 待实现 |
+| 仿真吞吐基准 `sim-throughput-benchmark` | Python · MuJoCo · MJX · JAX · CUDA | [repo](https://github.com/cccjj55/sim-throughput-benchmark) · `results/latest.md` · CI | ✅ 四后端框架 + MuJoCo CPU 基线 + MJX GPU 后端，CI 无 GPU 也绿 |
+| 吞吐–精度 Pareto `bench/accuracy.py` | 数值积分 · dt 扫描 · RMSE | 脚本 + CI（dt 1e-3~1e-2 vs 参考解 dt=1e-4） | ✅ 出表；数字待本机采 |
 | 瓶颈定位方法 | `nsys` / `ncu` · CUDA 基础 | — | ⬜ 在读 |
 
 **能说的话**：现在能讲"`env-steps/s` 与 `FPS` 的区别、spread 大于 20% 不算测量"；**还不能**讲"我把某个 kernel 做到理论带宽的 X%"。
@@ -22,8 +22,8 @@
 | 引擎 | 用途 | 证据 | 状态 |
 | --- | --- | --- | --- |
 | **Gazebo Classic + Nav2** | 仓储 AMR 全栈（定位·规划·控制） | [ros2-warehouse-amr](https://github.com/cccjj55/ros2-warehouse-amr)，一条命令起，CI 校验 launch | ✅ |
-| **MuJoCo** | 刚体动力学、系统辨识 | 本机 WSL 环境已通 | 🟡 |
-| **MuJoCo MJX** | GPU 批量仿真 | 同上，venv: `mujoco-mjx + jax[cuda12]` | 🟡 待跑吞吐 |
+| **MuJoCo** | 刚体动力学、系统辨识 | `backends/mujoco_cpu.py`（内联 cart-pole，CI 每次跑） | ✅ |
+| **MuJoCo MJX** | GPU 批量仿真 | `backends/mjx.py`（vmap + jit + fori_loop，含 CPU 回落） | 🟡 代码就绪，待 GPU 采数 |
 | **Isaac Sim / Isaac Lab** | PhysX 5 并行环境、合成数据 | — | ⬜ 计划 12 月第 3 周 |
 | Genesis / ManiSkill3 | 备选后端（同一 harness 插拔） | — | ⬜ |
 
