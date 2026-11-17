@@ -1,13 +1,12 @@
 **Robot simulation · Multiphysics CAE · Real-time control** — I care whether the number reproduces, not whether the demo runs.
 
 [![Email](https://img.shields.io/badge/-13567058401%40163.com-d14836?style=flat)](mailto:13567058401@163.com)
-[![GitHub](https://img.shields.io/badge/GitHub-cccjj55-181717?style=flat&logo=github&logoColor=white)](https://github.com/cccjj55)
+[![CI](https://github.com/cccjj55/ros2-warehouse-amr/actions/workflows/ci.yml/badge.svg)](https://github.com/cccjj55/ros2-warehouse-amr/actions)
 [![Intern](https://img.shields.io/badge/open%20to-2026%20winter%20intern%20(Hangzhou)-brightgreen?style=flat)](#)
 
-[`ros2-warehouse-amr`](https://github.com/cccjj55/ros2-warehouse-amr) ROS 2 AMR: Nav2 + mission FSM, 24 tests ·
-[`sim-throughput-benchmark`](https://github.com/cccjj55/sim-throughput-benchmark) env-steps/s per GPU ·
-[`rt-joint-control`](https://github.com/cccjj55/rt-joint-control) 1 kHz jitter & latency ·
-[`embodied-data-pipeline`](https://github.com/cccjj55/embodied-data-pipeline) demonstration data → LeRobot
+- [ros2-warehouse-amr](https://github.com/cccjj55/ros2-warehouse-amr) — ROS 2 AMR: Nav2 + mission FSM, 24 tests
+- [sim-throughput-benchmark](https://github.com/cccjj55/sim-throughput-benchmark) — env-steps/s per GPU
+- [rt-joint-control](https://github.com/cccjj55/rt-joint-control) — 1 kHz jitter and latency
+- [embodied-data-pipeline](https://github.com/cccjj55/embodied-data-pipeline) — demonstration data → LeRobot
 
-M.Sc. @ Zhejiang University · B.Eng. @ Central South University · 3 Q1 papers (1 first-author) · 2 granted patents
-&nbsp;·&nbsp; [details](https://github.com/cccjj55/cccjj55/blob/main/PROJECTS.md)
+M.Sc. @ Zhejiang University · B.Eng. @ Central South University · 3 Q1 papers (1 first-author) · 2 granted patents · [details](https://github.com/cccjj55/cccjj55/blob/main/PROJECTS.md)
