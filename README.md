@@ -11,4 +11,4 @@
 
 M.Sc. @ Zhejiang University · B.Eng. @ Central South University · 3 Q1 papers (1 first-author) · 2 granted patents
 
-**[Portfolio by category →](https://github.com/cccjj55/cccjj55/blob/main/PORTFOLIO.md)** · [project details](https://github.com/cccjj55/cccjj55/blob/main/PROJECTS.md)
+**[CV →](https://github.com/cccjj55/cccjj55/blob/main/CV.md)** · [Portfolio by category](https://github.com/cccjj55/cccjj55/blob/main/PORTFOLIO.md) · [project details](https://github.com/cccjj55/cccjj55/blob/main/PROJECTS.md)
