@@ -55,8 +55,8 @@
 
 | 项目 | 技术栈 | 证据 | 状态 |
 | --- | --- | --- | --- |
-| RRT + DWA + PPO 规划器 | Python · RRT · DWA · PPO | [repo](https://github.com/cccjj55/Autonomous-driving-algorithm-RRT-_DWA-based-on-PPO-regulation-final) | ✅ |
-| 多机场机队仿真 `fleet-sim` | 多智能体 · 调度 · 离散事件 | [repo](https://github.com/cccjj55/fleet_sim_multiairport_v9) | ✅ |
+| RRT + DWA + PPO 规划器 | Python · RRT · DWA · PPO | [repo](https://github.com/cccjj55/rrt-dwa-ppo-planner) | ✅ |
+| 多机场机队仿真 `fleet-sim` | 多智能体 · 调度 · 离散事件 | [repo](https://github.com/cccjj55/fleet-sim-multiairport) | ✅ |
 | 多机 AMR 任务分配 | 拍卖分配 · Nav2 多命名空间 | — | ⬜ 与 fab AMHS 同一类问题 |
 
 ---
