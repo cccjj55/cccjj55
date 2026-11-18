@@ -49,7 +49,7 @@
 
 ## 2. 规划 / 调度（已有仓库，补描述即可）
 
-### [rrt-dwa-ppo-planner](https://github.com/cccjj55/Autonomous-driving-algorithm-RRT-_DWA-based-on-PPO-regulation-final) ✅
+### [rrt-dwa-ppo-planner](https://github.com/cccjj55/rrt-dwa-ppo-planner) ✅
 
 RRT 做全局规划、DWA 做局部避障，用 PPO 调 DWA 的权重。
 
@@ -57,7 +57,7 @@ RRT 做全局规划、DWA 做局部避障，用 PPO 调 DWA 的权重。
 - 面试可讲：为什么用 PPO 而不是网格搜索（连续权重空间、在线适应）
 - 建议：仓库名太长，改名为 `rrt-dwa-ppo-planner`（GitHub 会自动重定向）
 
-### [fleet-sim](https://github.com/cccjj55/fleet_sim_multiairport_v9) ✅
+### [fleet-sim](https://github.com/cccjj55/fleet-sim-multiairport) ✅
 
 多机场机队仿真。
 
