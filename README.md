@@ -7,6 +7,7 @@
 - [rt-joint-control](https://github.com/cccjj55/rt-joint-control) — 1 kHz jitter and latency
 - [embodied-data-pipeline](https://github.com/cccjj55/embodied-data-pipeline) — demonstration data → LeRobot
 - [dsh-plugin-wsl](https://github.com/cccjj55/dsh-plugin-wsl) — run bash inside WSL from dsh
+- [dsh-plugin-bench](https://github.com/cccjj55/dsh-plugin-bench) — benchmark a command with a fingerprint
 
 M.Sc. @ Zhejiang University · 3 Q1 papers (1 first-author) · 2 granted patents
 
