@@ -17,6 +17,8 @@
 
 ---
 
+| 文献值对照表 | 论文/仓库声明 + 硬件 + 版本 + 证据标签 | [robot-sim-benchmarks](https://github.com/cccjj55/robot-sim-benchmarks)（`UPSTREAM` / `3P` / `MEASURED` 三级） | ✅ 维护中 |
+
 ## B. 机器人仿真栈 / Simulation
 
 | 引擎 | 用途 | 证据 | 状态 |
