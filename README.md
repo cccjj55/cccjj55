@@ -10,6 +10,7 @@
 - [dsh-plugin-bench](https://github.com/cccjj55/dsh-plugin-bench) — benchmark a command with a fingerprint
 - [robot-sim-benchmarks](https://github.com/cccjj55/robot-sim-benchmarks) — published sim claims, with sources and evidence labels
 - [hpc-kernels](https://github.com/cccjj55/hpc-kernels) — axpy/softmax/matmul in ref, OpenMP and blocked variants; best+median+spread from CI
+- [mpi-heat](https://github.com/cccjj55/mpi-heat) — 2D Jacobi with MPI halo exchange; strong/weak scaling on 12 threads
 
 M.Sc. @ Zhejiang University · 3 Q1 papers (1 first-author) · 2 granted patents
 
