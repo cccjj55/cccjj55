@@ -19,6 +19,8 @@
 
 | 文献值对照表 | 论文/仓库声明 + 硬件 + 版本 + 证据标签 | [robot-sim-benchmarks](https://github.com/cccjj55/robot-sim-benchmarks)（`UPSTREAM` / `3P` / `MEASURED` 三级） | ✅ 维护中 |
 
+| HPC 基线 kernel | C11 · OpenMP · 缓存分块 | [hpc-kernels](https://github.com/cccjj55/hpc-kernels)：正确性先于计时，best/median/spread，CI 实测 | ✅ 三项跑通，CUDA 待补 |
+
 ## B. 机器人仿真栈 / Simulation
 
 | 引擎 | 用途 | 证据 | 状态 |
