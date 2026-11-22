@@ -9,6 +9,7 @@
 - [dsh-plugin-wsl](https://github.com/cccjj55/dsh-plugin-wsl) — run bash inside WSL from dsh
 - [dsh-plugin-bench](https://github.com/cccjj55/dsh-plugin-bench) — benchmark a command with a fingerprint
 - [robot-sim-benchmarks](https://github.com/cccjj55/robot-sim-benchmarks) — published sim claims, with sources and evidence labels
+- [hpc-kernels](https://github.com/cccjj55/hpc-kernels) — axpy/softmax/matmul in ref, OpenMP and blocked variants; best+median+spread from CI
 
 M.Sc. @ Zhejiang University · 3 Q1 papers (1 first-author) · 2 granted patents
 
