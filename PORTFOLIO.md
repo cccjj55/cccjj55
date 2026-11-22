@@ -21,6 +21,8 @@
 
 | HPC 基线 kernel | C11 · OpenMP · 缓存分块 | [hpc-kernels](https://github.com/cccjj55/hpc-kernels)：正确性先于计时，best/median/spread，CI 实测 | ✅ 三项跑通，CUDA 待补 |
 
+| MPI 域分解 | C · OpenMPI · 2D 分解 halo 交换 | [mpi-heat](https://github.com/cccjj55/mpi-heat)：checksum 与 rank 数无关；1024² 强扩展 6.43×，2048² 只有 3.25×（带宽受限） | ✅ 本机实测 |
+
 ## B. 机器人仿真栈 / Simulation
 
 | 引擎 | 用途 | 证据 | 状态 |
