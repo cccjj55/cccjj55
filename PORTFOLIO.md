@@ -5,37 +5,34 @@
 
 ---
 
-## A. 高性能仿真 / Performance
+## A. 高性能仿真 & HPC / Performance
 
 | 项目 | 技术栈 | 证据 | 状态 |
 | --- | --- | --- | --- |
-| 仿真吞吐基准 `sim-throughput-benchmark` | Python · MuJoCo · MJX · JAX · CUDA | [repo](https://github.com/cccjj55/sim-throughput-benchmark) · `results/latest.md` · CI | ✅ 四后端框架 + MuJoCo CPU 基线 + MJX GPU 后端，CI 无 GPU 也绿 |
-| 吞吐–精度 Pareto `bench/accuracy.py` | 数值积分 · dt 扫描 · RMSE | 脚本 + CI（dt 1e-3~1e-2 vs 参考解 dt=1e-4） | ✅ 出表；数字待本机采 |
-| 瓶颈定位方法 | `nsys` / `ncu` · CUDA 基础 | — | ⬜ 在读 |
+| 环境并行与 C++ 向量化 `parallel-envs` | C++17 · OpenMP · Python · MuJoCo 4.0.1 | [repo](https://github.com/cccjj55/parallel-envs) · `docs/parallel_scaling.svg` · CI (`v0.2.0`)：线程 `0.05×`、进程复用 `5.62×`、C++ OpenMP `11.11×` (`10.75M steps/s`) | ✅ 本机 + CI |
+| CAE 并行求解器 `cae-parallel-solver` | C11 · OpenMP · 8-color CSR 装配 · CG | [repo](https://github.com/cccjj55/cae-parallel-solver) · `docs/fem_breakdown.svg` · CI：4.00× `O(h²)` 收敛；`nx=400` `5.92×` (`157.8 GB/s`)，`nx=800` 撞上 `61.9 GB/s` DRAM 墙 | ✅ 本机 + CI |
+| MPI 域分解 `mpi-heat` | C11 · OpenMPI · 2D halo 交换 | [repo](https://github.com/cccjj55/mpi-heat) · `docs/scaling.svg` · CI (`v0.1.0`)：checksum 与 rank 无关；`1024²` `6.43×` vs `2048²` `3.25×` | ✅ 本机 + CI |
+| HPC 基线 kernel `hpc-kernels` | C11 · OpenMP · 缓存分块 | [repo](https://github.com/cccjj55/hpc-kernels) · `docs/kernels.svg` · CI (`v0.1.0`)：正确性先于计时，matmul 分块+线程 `70.62 GFLOP/s`，`axpy` 测得 DRAM 上限 `58.35 GB/s` | ✅ CPU 跑通，CUDA 待补 |
+| 仿真吞吐基准 `sim-throughput-benchmark` | Python · MuJoCo · MJX · JAX | [repo](https://github.com/cccjj55/sim-throughput-benchmark) · `docs/throughput.svg` · `results/latest.md` · CI (`v0.1.0`) | ✅ CPU 基线 + Pareto；GPU 待采 |
+| 文献值对照表 `robot-sim-benchmarks` | 论文/仓库声明 + 硬件 + 版本 + 证据标签 | [repo](https://github.com/cccjj55/robot-sim-benchmarks) · `data/claims.yaml` (`UPSTREAM` / `3P` / `MEASURED` 三级，含 EnvPool 对照) | ✅ 维护中 |
+| 可复现跑分工具 `dsh-plugin-bench` | Node.js · 双噪声闸门 (`spread` + `cv`) · 指纹 | [repo](https://github.com/cccjj55/dsh-plugin-bench) · 31 tests · 三平台 CI (`v0.1.0`) | ✅ 跑通 |
+| GPU 瓶颈定位 | `nsys` / `ncu` · CUDA kernel | — | ⬜ 在读（等 WSL CUDA Toolkit） |
 
-**能说的话**：现在能讲"`env-steps/s` 与 `FPS` 的区别、spread 大于 20% 不算测量"；**还不能**讲"我把某个 kernel 做到理论带宽的 X%"。
+**能说的话**：现在能用自己实测的数据讲清三件事——① 为什么 Python 多线程跑 MuJoCo 会跌到 `0.05×`、C++ OpenMP 如何把 `1body` 推到 `10.75M steps/s`（`11.11×`）以及 `6c/12t` 物理核边界；② 为什么 FEM 里装配只占 `1.1%`、SpMV 占 `77.9%` 且工作集越过 L3 后准确撞上 `axpy` 测出的 `~58–62 GB/s` DRAM 带宽墙；③ 为什么分母带噪声的加速比不可引用。**还不能**讲"我把某个 CUDA kernel 做到理论带宽的 X%"。
 
 ---
-
-| 文献值对照表 | 论文/仓库声明 + 硬件 + 版本 + 证据标签 | [robot-sim-benchmarks](https://github.com/cccjj55/robot-sim-benchmarks)（`UPSTREAM` / `3P` / `MEASURED` 三级） | ✅ 维护中 |
-
-| HPC 基线 kernel | C11 · OpenMP · 缓存分块 | [hpc-kernels](https://github.com/cccjj55/hpc-kernels)：正确性先于计时，best/median/spread，CI 实测 | ✅ 三项跑通，CUDA 待补 |
-
-| MPI 域分解 | C · OpenMPI · 2D 分解 halo 交换 | [mpi-heat](https://github.com/cccjj55/mpi-heat)：checksum 与 rank 数无关；1024² 强扩展 6.43×，2048² 只有 3.25×（带宽受限） | ✅ 本机实测 |
-
-| 环境并行 | Python · MuJoCo · multiprocessing | [parallel-envs](https://github.com/cccjj55/parallel-envs)：线程 0.06–0.20×（GIL），进程需 ≥4000 步/任务才划算，12 核最好 4.83×（~40% 效率） | ✅ 本机实测 |
 
 ## B. 机器人仿真栈 / Simulation
 
 | 引擎 | 用途 | 证据 | 状态 |
 | --- | --- | --- | --- |
-| **Gazebo Classic + Nav2** | 仓储 AMR 全栈（定位·规划·控制） | [ros2-warehouse-amr](https://github.com/cccjj55/ros2-warehouse-amr)，一条命令起，CI 校验 launch | ✅ |
-| **MuJoCo** | 刚体动力学、系统辨识 | `backends/mujoco_cpu.py`（内联 cart-pole，CI 每次跑） | ✅ |
-| **MuJoCo MJX** | GPU 批量仿真 | `backends/mjx.py`（vmap + jit + fori_loop，含 CPU 回落） | 🟡 代码就绪，待 GPU 采数 |
-| **Isaac Sim / Isaac Lab** | PhysX 5 并行环境、合成数据 | — | ⬜ 计划 12 月第 3 周 |
+| **Gazebo Classic + Nav2** | 仓储 AMR 全栈（定位·规划·控制） | [ros2-warehouse-amr](https://github.com/cccjj55/ros2-warehouse-amr)，一条命令起，CI 校验 launch (`v0.2.0`) | ✅ |
+| **MuJoCo (Python & C API)** | 刚体动力学、多线程/多进程/OpenMP rollout | [parallel-envs](https://github.com/cccjj55/parallel-envs) (`mujoco 4.0.1` C API + `mujoco.rollout` + `mj_step`) & `backends/mujoco_cpu.py` | ✅ |
+| **MuJoCo MJX** | 向量化仿真 | `backends/mjx.py`（vmap + jit + fori_loop，CPU `522k steps/s` 已测） | 🟡 CPU 跑通，待 GPU 采数 |
+| **Isaac Sim / Isaac Lab** | PhysX 5 并行环境、合成数据 | — | ⬜ 计划中 |
 | Genesis / ManiSkill3 | 备选后端（同一 harness 插拔） | — | ⬜ |
 
-**为什么按引擎分**：同一个任务在不同引擎上的**物理保真度**和**吞吐**是两件事。我的 harness 设计成可插拔（`Backend.step(n)`），换引擎只加一个文件。
+**为什么按引擎分**：同一个任务在不同引擎上的**物理保真度**和**吞吐**是两件事。`sim-throughput-benchmark` 设计成可插拔（`Backend.step(n)`），而 `parallel-envs` 专门切开调度与语言边界（Python loop / GIL / IPC / C++ OpenMP）。
 
 ---
 
@@ -74,6 +71,7 @@
 | 项目 | 技术栈 | 证据 | 状态 |
 | --- | --- | --- | --- |
 | PEM 电解水仿真与实验对标 | COMSOL 多物理场 · Simulink · 参数扫描 | **第一作者 IJHE 2025**（Q1, IF 8.1）+ 合作 2 篇 + 2 项专利 | ✅ |
+| 有限元并行计算 | C11 · OpenMP · 8-color CSR 装配 · CG | [cae-parallel-solver](https://github.com/cccjj55/cae-parallel-solver)（~64 万自由度实测与带宽墙分析） | ✅ |
 | 结构/热仿真 | ANSYS Mechanical / Thermal | 转子发动机、AGV 车体多场景力学 | ✅ |
 | 代理模型（AI4CAE） | Python · MLP / GP · 数据来自 COMSOL 扫描 | — | ⬜ 计划 |
 
@@ -83,45 +81,29 @@
 
 | 类别 | ✅ 有代码/有数据 | 🟡 跑通过 demo | ⬜ 在读/未开始 |
 | --- | --- | --- | --- |
-| **仿真引擎** | Gazebo Classic | MuJoCo · MJX | Isaac Sim / Isaac Lab · Genesis · ManiSkill3 |
-| **AI Infra** | Docker · GitHub Actions · pytest/CI 门禁 | JAX | CUDA · Triton · Ray · NCCL · K8s · vLLM |
+| **仿真引擎** | Gazebo Classic · MuJoCo (Python & C API) | MJX (CPU) | Isaac Sim / Isaac Lab · Genesis · ManiSkill3 |
+| **HPC / 并行** | C11 / C++17 · OpenMP · OpenMPI · 缓存分块 · 图着色 CSR 装配 | JAX | CUDA · Triton · Ray · NCCL · `ncu` / `nsys` · K8s · vLLM |
 | **实时系统** | STM32 · PID · 二进制协议 | PREEMPT_RT · WSL/Linux | EtherCAT · HIL（Speedgoat/dSPACE） |
-| **数据** | pandas · JSONL/CSV · Matplotlib | LeRobot 格式 | Parquet · webdataset · RLDS |
-| **CAE** | COMSOL · ANSYS（结构/热） · Simulink | CarSim | Icepak/Flotherm · Lumerical（硅光） |
-| **语言/工程** | Python · C++（读写） · MATLAB · Git · Linux | Shell 脚本 · Dockerfile | CMake · 多线程/无锁 |
+| **数据与工程** | Python · Git · Docker · GitHub Actions · pytest/CI 门禁 · pandas/JSONL | Shell 脚本 · LeRobot 格式 | Parquet · webdataset · CMake · 无锁队列 |
+| **CAE** | COMSOL · ANSYS（结构/热） · Simulink | CarSim | Icepak/Flotherm |
 
-**用法**：面试时只说 ✅ 那一列；🟡 说"跑通过 demo，还没自己写"；⬜ 一律说"在学"。反过来做一次，就够被人记住。
+**用法**：面试时只说 ✅ 那一列；🟡 说"跑通过 demo，还没自己做深度工程"；⬜ 一律说"在学"。
 
 ---
 
 ## 复现清单 / Reproductions（"借别人成果"的正确姿势）
 
 想把别人的东西放到自己主页，**只有一种合法做法：自己跑一遍，署名上游，报自己的数**。
-这也是招聘方最认的"借力"方式——它证明你能复现，而不是能截图。
 
-| 上游 | 我要复现什么 | 署名格式 | 状态 |
+| 上游 | 我要复现/借鉴什么 | 署名格式 / 落点 | 状态 |
 | --- | --- | --- | --- |
-| [MuJoCo Playground](https://github.com/google-deepmind/mujoco_playground) / MJX 示例 | 同任务吞吐（env 数 × device） | `Reproduced from mujoco_playground@<sha>, measured on RTX 5070 Ti Laptop 12 GB: <N> env-steps/s` | ⬜ |
-| [Isaac Lab](https://github.com/isaac-sim/IsaacLab) 基准任务 | 同任务吞吐与显存 | 同上格式 | ⬜ |
-| [ManiSkill3](https://github.com/haosulab/ManiSkill) | 同任务吞吐 | 同上 | ⬜ |
-| [LeRobot](https://github.com/huggingface/lerobot) | 用其数据集格式 + ACT/DP 训练 | `Trained with lerobot@<sha> on <my dataset>` | ⬜ |
+| [mujoco_mpc](https://github.com/google-deepmind/mujoco_mpc) / [EnvPool](https://github.com/sail-sg/envpool) | 线程私有 `mjData` + C++ OpenMP 批量 rollout 架构 | 已实现于 [parallel-envs](https://github.com/cccjj55/parallel-envs) 并附 `NOTICE.md`，12 线程实测 `10.75M env-steps/s` | ✅ |
 | [Nav2](https://github.com/ros-navigation/navigation2) bringup | 已复现并二次封装 | 已在 README 与 `NOTICE.md` 标注 | ✅ |
+| [MuJoCo Playground](https://github.com/google-deepmind/mujoco_playground) / MJX | GPU 端任务吞吐（env 数 × device） | `Reproduced from mujoco_playground@<sha>, measured on RTX 5070 Ti Laptop 12 GB` | ⬜ |
+| [Isaac Lab](https://github.com/isaac-sim/IsaacLab) 基准任务 | 同任务吞吐与显存 | 同上格式 | ⬜ |
+| [LeRobot](https://github.com/huggingface/lerobot) | 数据集格式 + ACT/DP 训练 | `Trained with lerobot@<sha> on <my dataset>` | ⬜ |
 
-**三条底线**（踩了就是不可逆的减分）：
+**三条底线**：
 1. 别人的 GIF/截图 **不当自己的 demo** 发，只能作为"上游效果"引用并注明。
 2. 数字必须是自己机器上测的，写清硬件、版本、commit。
-3. 有上游代码参与的地方，`NOTICE.md` 里逐文件写清（`ros2-warehouse-amr` 已经这么做了）。
-
----
-
-## 复现命令（照抄即可，WSL 里跑）
-
-```bash
-# MuJoCo / MJX
-python3 -m venv ~/mjx && source ~/mjx/bin/activate
-pip install -U pip && pip install mujoco mujoco-mjx "jax[cuda12]" flax
-python -c "import jax; print(jax.devices())"
-
-# 吞吐扫描（先 dummy 验管道，再换 mjx 后端）
-python bench/harness.py --backend dummy --envs 64,256,1024 --steps 200 --repeat 3
-```
+3. 有上游思路/代码参考的地方，在 `NOTICE.md` 里写清。
