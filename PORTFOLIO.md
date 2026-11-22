@@ -23,6 +23,8 @@
 
 | MPI 域分解 | C · OpenMPI · 2D 分解 halo 交换 | [mpi-heat](https://github.com/cccjj55/mpi-heat)：checksum 与 rank 数无关；1024² 强扩展 6.43×，2048² 只有 3.25×（带宽受限） | ✅ 本机实测 |
 
+| 环境并行 | Python · MuJoCo · multiprocessing | [parallel-envs](https://github.com/cccjj55/parallel-envs)：线程 0.06–0.20×（GIL），进程需 ≥4000 步/任务才划算，12 核最好 4.83×（~40% 效率） | ✅ 本机实测 |
+
 ## B. 机器人仿真栈 / Simulation
 
 | 引擎 | 用途 | 证据 | 状态 |
