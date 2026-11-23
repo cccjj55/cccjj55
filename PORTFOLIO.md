@@ -22,7 +22,7 @@
 
 ---
 
-| GPU 稀疏求解 | CUDA · CSR SpMV · 带宽墙 | [cae-parallel-solver](https://github.com/cccjj55/cae-parallel-solver) v0.2.0：同一矩阵 CPU 12 线程 93.1 GB/s vs GPU 392.9 GB/s（= 实测 copy 带宽，证明带宽受限）；warp-per-row 因每行仅 7 nnz 反而慢 4.6× | ✅ 本机实测 |
+| GPU 端到端求解 | CUDA · CSR SpMV · CG · 持续带宽 | [cae-parallel-solver](https://github.com/cccjj55/cae-parallel-solver) v1.0：CG 638k DOF GPU 2.07×（465 vs 962 ms）、159k DOF 0.44×（点积同步主导）；SpMV 爆发 392.9 GB/s → 3000 次后 192.8 GB/s | ✅ 本机实测 |
 
 ## B. 机器人仿真栈 / Simulation
 
