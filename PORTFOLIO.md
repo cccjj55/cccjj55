@@ -10,19 +10,17 @@
 | 项目 | 技术栈 | 证据 | 状态 |
 | --- | --- | --- | --- |
 | 环境并行与 C++ 向量化 `parallel-envs` | C++17 · OpenMP · Python · MuJoCo 4.0.1 | [repo](https://github.com/cccjj55/parallel-envs) · `docs/parallel_scaling.svg` · CI (`v0.2.0`)：线程 `0.05×`、进程复用 `5.62×`、C++ OpenMP `11.11×` (`10.75M steps/s`) | ✅ 本机 + CI |
-| CAE 并行求解器 `cae-parallel-solver` | C11 · OpenMP · 8-color CSR 装配 · CG | [repo](https://github.com/cccjj55/cae-parallel-solver) · `docs/fem_breakdown.svg` · CI：4.00× `O(h²)` 收敛；`nx=400` `5.92×` (`157.8 GB/s`)，`nx=800` 撞上 `61.9 GB/s` DRAM 墙 | ✅ 本机 + CI |
-| MPI 域分解 `mpi-heat` | C11 · OpenMPI · 2D halo 交换 | [repo](https://github.com/cccjj55/mpi-heat) · `docs/scaling.svg` · CI (`v0.1.0`)：checksum 与 rank 无关；`1024²` `6.43×` vs `2048²` `3.25×` | ✅ 本机 + CI |
-| HPC 基线 kernel `hpc-kernels` | C11 · OpenMP · 缓存分块 | [repo](https://github.com/cccjj55/hpc-kernels) · `docs/kernels.svg` · CI (`v0.1.0`)：正确性先于计时，matmul 分块+线程 `70.62 GFLOP/s`，`axpy` 测得 DRAM 上限 `58.35 GB/s` | ✅ CPU 跑通，CUDA 待补 |
-| 仿真吞吐基准 `sim-throughput-benchmark` | Python · MuJoCo · MJX · JAX | [repo](https://github.com/cccjj55/sim-throughput-benchmark) · `docs/throughput.svg` · `results/latest.md` · CI (`v0.1.0`) | ✅ CPU 基线 + Pareto；GPU 待采 |
-| 文献值对照表 `robot-sim-benchmarks` | 论文/仓库声明 + 硬件 + 版本 + 证据标签 | [repo](https://github.com/cccjj55/robot-sim-benchmarks) · `data/claims.yaml` (`UPSTREAM` / `3P` / `MEASURED` 三级，含 EnvPool 对照) | ✅ 维护中 |
-| 可复现跑分工具 `dsh-plugin-bench` | Node.js · 双噪声闸门 (`spread` + `cv`) · 指纹 | [repo](https://github.com/cccjj55/dsh-plugin-bench) · 31 tests · 三平台 CI (`v0.1.0`) | ✅ 跑通 |
-| GPU 瓶颈定位 | `nsys` / `ncu` · CUDA kernel | — | ⬜ 在读（等 WSL CUDA Toolkit） |
+| CAE 并行求解器 `cae-parallel-solver` | C11 · OpenMP · CUDA · 8-color CSR · CG | [repo](https://github.com/cccjj55/cae-parallel-solver) · `docs/fem_breakdown.svg` · `docs/gpu_cg.svg` (`v1.1.0`)：CPU `nx=400` `5.92×`、`nx=800` `61.9 GB/s` 墙；GPU SpMV `392.9 GB/s`、设备侧 CG `1.15×` (`159k`) / `2.91×` (`638k`) | ✅ CPU + GPU 跑通 |
+| MPI 域分解 `mpi-heat` | C11 · OpenMPI · 2D halo 交换 | [repo](https://github.com/cccjj55/mpi-heat) · `docs/scaling.svg` · CI (`v1.0.0`)：checksum 与 rank 无关；`1024²` `6.43×` vs `2048²` `3.25×` | ✅ 本机 + CI |
+| HPC 基线 kernel `hpc-kernels` | C11 · OpenMP · CUDA · 缓存分块 | [repo](https://github.com/cccjj55/hpc-kernels) · `docs/kernels.svg` · `docs/kernels_gpu.svg` (`v1.1.0`)：非零输入 + CPU `max|diff|` 校验；GPU `axpy` `402.4 GB/s`、`matmul` `2286/444 GFLOP/s`、grid-stride `softmax` `8.65 Gelem/s` (`32.3×`) | ✅ CPU + GPU 跑通 |
+| 仿真吞吐基准 `sim-throughput-benchmark` | Python · MuJoCo · MJX · JAX | [repo](https://github.com/cccjj55/sim-throughput-benchmark) · `docs/throughput.svg` · `results/latest.md` · CI (`v1.0.0`) | ✅ CPU 基线 + Pareto；GPU 待采 |
+| 文献值对照表 `robot-sim-benchmarks` | 论文/仓库声明 + 硬件 + 版本 + 证据标签 | [repo](https://github.com/cccjj55/robot-sim-benchmarks) · `data/claims.yaml` (`UPSTREAM` / `3P` / `MEASURED` 三级 + CI `check_claims.py`) | ✅ 维护中 |
+| 可复现跑分工具 `dsh-plugin-bench` | Node.js · 双噪声闸门 (`spread` + `cv`) · 指纹 | [repo](https://github.com/cccjj55/dsh-plugin-bench) · 31 tests · 三平台 CI (`v1.0.0`) | ✅ 跑通 |
+| `ncu` / `nsys` 深度剖析 | Nsight Compute / Systems · Roofline | — | ⬜ 工具待抓 `ncu` 报告 |
 
-**能说的话**：现在能用自己实测的数据讲清三件事——① 为什么 Python 多线程跑 MuJoCo 会跌到 `0.05×`、C++ OpenMP 如何把 `1body` 推到 `10.75M steps/s`（`11.11×`）以及 `6c/12t` 物理核边界；② 为什么 FEM 里装配只占 `1.1%`、SpMV 占 `77.9%` 且工作集越过 L3 后准确撞上 `axpy` 测出的 `~58–62 GB/s` DRAM 带宽墙；③ 为什么分母带噪声的加速比不可引用。**还不能**讲"我把某个 CUDA kernel 做到理论带宽的 X%"。
+**能说的话**：现在能用自己实测的数据讲清四件事——① 为什么 Python 多线程跑 MuJoCo 会跌到 `0.05×`、C++ OpenMP 如何把 `1body` 推到 `10.75M steps/s`（`11.11×`）以及 `6c/12t` 物理核边界；② 为什么 FEM 里装配只占 `1.1%`、SpMV 占 `77.9%` 且越过 L3 后撞上 `~58–62 GB/s` CPU DRAM 墙，而 GPU 上 SpMV 撞上 `392.9 GB/s` 拷贝带宽、设备侧循环把小规模 CG 从 `0.44×` 救到 `1.15×`；③ 为什么 naive 单 block GPU softmax 会比 12 核 CPU 慢 `4.5×` 而 grid-stride + warp shuffle 可提速 `32.3×`；④ 为什么分母带噪声的加速比不可引用。**还不能**讲"我用 `ncu` 分析过某 kernel 的 occupancy 与 stall 分布"。
 
 ---
-
-| GPU 端到端求解 | CUDA · CSR SpMV · CG · 持续带宽 | [cae-parallel-solver](https://github.com/cccjj55/cae-parallel-solver) v1.0：CG 638k DOF GPU 2.07×（465 vs 962 ms）、159k DOF 0.44×（点积同步主导）；SpMV 爆发 392.9 GB/s → 3000 次后 192.8 GB/s | ✅ 本机实测 |
 
 ## B. 机器人仿真栈 / Simulation
 
@@ -84,7 +82,7 @@
 | 类别 | ✅ 有代码/有数据 | 🟡 跑通过 demo | ⬜ 在读/未开始 |
 | --- | --- | --- | --- |
 | **仿真引擎** | Gazebo Classic · MuJoCo (Python & C API) | MJX (CPU) | Isaac Sim / Isaac Lab · Genesis · ManiSkill3 |
-| **HPC / 并行** | C11 / C++17 · OpenMP · OpenMPI · 缓存分块 · 图着色 CSR 装配 | JAX | CUDA · Triton · Ray · NCCL · `ncu` / `nsys` · K8s · vLLM |
+| **HPC / 并行** | C11 / C++17 · OpenMP · OpenMPI · CUDA（axpy/reduce/softmax/matmul/CSR SpMV/设备侧 CG） · 缓存分块 · 图着色 CSR 装配 | JAX (CPU) | Triton · Ray · NCCL · `ncu` / `nsys` · K8s · vLLM |
 | **实时系统** | STM32 · PID · 二进制协议 | PREEMPT_RT · WSL/Linux | EtherCAT · HIL（Speedgoat/dSPACE） |
 | **数据与工程** | Python · Git · Docker · GitHub Actions · pytest/CI 门禁 · pandas/JSONL | Shell 脚本 · LeRobot 格式 | Parquet · webdataset · CMake · 无锁队列 |
 | **CAE** | COMSOL · ANSYS（结构/热） · Simulink | CarSim | Icepak/Flotherm |

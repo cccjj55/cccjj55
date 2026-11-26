@@ -13,8 +13,8 @@
 
 **HPC & numerical simulation**
 
-- [cae-parallel-solver](https://github.com/cccjj55/cae-parallel-solver) — FEM assembly + CG on CPU and GPU; 392.9 GB/s, 2.07× ![v](https://img.shields.io/github/v/release/cccjj55/cae-parallel-solver?display_name=tag&style=flat&color=0f766e)
-- [hpc-kernels](https://github.com/cccjj55/hpc-kernels) — axpy / softmax / matmul across C, OpenMP and CUDA ![v](https://img.shields.io/github/v/release/cccjj55/hpc-kernels?display_name=tag&style=flat&color=0f766e)
+- [cae-parallel-solver](https://github.com/cccjj55/cae-parallel-solver) — FEM assembly + CG on CPU and GPU; device loop 2.91× (638k) / 1.15× (159k), 392.9 GB/s SpMV ![v](https://img.shields.io/github/v/release/cccjj55/cae-parallel-solver?display_name=tag&style=flat&color=0f766e)
+- [hpc-kernels](https://github.com/cccjj55/hpc-kernels) — axpy / softmax / matmul across C, OpenMP and CUDA (CPU-verified; softmax 32.3× rewrite) ![v](https://img.shields.io/github/v/release/cccjj55/hpc-kernels?display_name=tag&style=flat&color=0f766e)
 - [mpi-heat](https://github.com/cccjj55/mpi-heat) — 2D Jacobi halo exchange; 6.43× at 1024², 3.25× at 2048² ![v](https://img.shields.io/github/v/release/cccjj55/mpi-heat?display_name=tag&style=flat&color=0f766e)
 
 **Tooling**

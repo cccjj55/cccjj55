@@ -29,27 +29,26 @@
 
 ## 2. 高性能计算与数值求解（HPC / CAE）
 
-### [cae-parallel-solver](https://github.com/cccjj55/cae-parallel-solver) ✅ 可跑（`v0.1.0`）
+### [cae-parallel-solver](https://github.com/cccjj55/cae-parallel-solver) ✅ 可跑（`v1.1.0`）
 
-2D P1 三角形有限元泊松方程求解器（C11 + OpenMP，非结构化 CSR 稀疏矩阵装配 + CG 迭代）：
+2D P1 三角形有限元泊松方程求解器（C11 + OpenMP + CUDA，非结构化 CSR 稀疏矩阵装配 + CG 迭代）：
 
-- 三种实现：`serial` vs `omp_atomic` vs **8-color 无锁并行装配 `omp_colored`**
-- 数学校验：`make test` 检查加密网格误差精确 `4.00×` 收敛（`O(h²)`），并行解与串行差异 `< 2.5e-15`
-- 性能拆解：`nx=400`（~16 MB，L3 内）达到 `5.92×`、SpMV `157.8 GB/s`；`nx=800`（~64 MB，越过 L3）CSR 装配仅占 `1.1%`，SpMV+向量点积占 `98.8%`，且 SpMV 带宽平台停在 `56.8 → 61.9 GB/s`，与 `hpc-kernels` 测得的 DRAM 墙一致
+- CPU 侧：`serial` vs `omp_atomic` vs **8-color 无锁并行装配 `omp_colored`**；`make test` 验证 `4.00×` `O(h²)` 收敛且差异 `< 2.5e-15`；`nx=400` 达到 `5.92×`（`157.8 GB/s`），`nx=800` 装配仅占 `1.1%`、SpMV+向量点积占 `98.8%` 且撞上 `61.9 GB/s` DRAM 墙
+- GPU 侧（RTX 5070 Ti）：CSR SpMV 达 `392.9 GB/s`（等于设备拷贝带宽 `392.3 GB/s`）；v1 每步三次主机同步导致 `159k DOF` 只有 `0.44×`（`638k` `2.07×`），v2 设备侧循环（`cg_cuda_dev.cu`）将 `159k` 拉回 `1.15×`（`56 ms`）、`638k` 提到 `2.91×`（`331 ms`）
 
-### [mpi-heat](https://github.com/cccjj55/mpi-heat) ✅ 可跑（`v0.1.0`）
+### [mpi-heat](https://github.com/cccjj55/mpi-heat) ✅ 可跑（`v1.0.0`）
 
 2D 显式 Jacobi 热传导（C11 + OpenMPI 1D 行分解 + `MPI_Sendrecv` + `MPI_PROC_NULL` 边界）：
 
 - 不变量门禁：CI 自动验证 1/2/4 rank 输出完全一致的全局 checksum
 - 12 线程实测：`1024²`（缓存友好）8 rank 达 `6.43×`，同一代码在 `2048²`（32 MB/数组，越过 L3）跌至 `3.25×`
 
-### [hpc-kernels](https://github.com/cccjj55/hpc-kernels) ✅ CPU 跑通（`v0.1.0`）
+### [hpc-kernels](https://github.com/cccjj55/hpc-kernels) ✅ CPU + GPU 跑通（`v1.1.0`）
 
-`axpy` / `softmax` / `matmul`（naive、64×64 分块、分块+OpenMP），先校验 `max|diff|` 再计时，报 best/median/spread：
+`axpy` / `reduce` / `softmax` / `matmul`（C11 / OpenMP / CUDA），**非零输入并在计时前对 CPU 参考解做 `max|diff|` 校验**：
 
-- CI（4 vCPU Xeon）与本机（12 线程 i7-14650HX）双侧对比：`matmul` 分块提速 ~7×，叠加 OpenMP 本机达 `70.62 GFLOP/s`；`axpy` 测得本机 DRAM 带宽上限 `58.35 GB/s`
-- 用两次 CI 波动实证说明“分母在抖的加速比不能引用”及“spread 47% 属于环境噪声”
+- CPU 侧：`matmul` 分块+OpenMP 12 线程达 `70.62 GFLOP/s`；`axpy` 测得 DRAM 带宽上限 `58.35 GB/s`
+- GPU 侧（RTX 5070 Ti）：`axpy` `402.40 GB/s`、`reduce`（warp shuffle）`417.9 GB/s`、`matmul` `2,285.91`（FP32）/ `444.42`（FP64）GFLOP/s；`softmax` 从单 block `0.2679 Gelem/s`（CPU `0.22×`）重写为 grid-stride + 设备端标量后达到 `8.6532 Gelem/s`（`32.3×` 于自身、`7.2×` 于 CPU，`max|diff|=1.19e-18`）
 
 ---
 
