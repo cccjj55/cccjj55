@@ -1,4 +1,4 @@
-Hi, I'm **Zeyi Chen (陈泽一)** — M.Sc. Mechanical Engineering @ Zhejiang University (B.Eng. @ CSU).
+Hi, I'm **Zeyi Chen ** — M.Sc. Mechanical Engineering @ Zhejiang University (B.Eng. @ CSU).
 
 My path started in **multiphysics PEM electrolyzer simulation** (COMSOL / Simulink, 3 Q1 papers including 1st-author in *IJHE*, 2 granted patents) and Formula-style vehicle integration. That pulled me into a habit I couldn't drop when moving into robotics and GPU computing: **whenever a simulator or solver claims "10× faster", I pin the hardware, check numerical equivalence against a serial reference (`max|diff|` or exact checksum), and measure where time actually goes** — keeping negative results (`0.05×` GIL contention, `0.44×` CUDA host sync, intra-node `MPI_Isend` overhead) right next to the wins.
 
