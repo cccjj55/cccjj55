@@ -1,109 +1,71 @@
 # Portfolio — by category
 
-> 每条只写三件事：**技术栈 / 证据在哪 / 能不能复现**。
-> 状态标记：**✅ 有代码有数据** · **🟡 跑通过官方 demo** · **⬜ 在读或未开始**（不写"熟悉/精通"）
+> 我按工程习惯只写三件事：**技术栈 / 证据落点 / 能不能独立复现**。  
+> 状态记号：**✅ 实测与代码闭环** · **🟡 工具链/CPU 基线跑通** · **⬜ 计划或排队中**（不写"熟悉/精通"这类空词）。
 
 ---
 
-## A. 高性能仿真 & HPC / Performance
+## A. 高性能仿真 & HPC / Solvers
+
+| 项目 | 技术栈 | 证据与关键读数 | 状态 |
+| --- | --- | --- | --- |
+| C++/OpenMP MuJoCo 并行与 `RolloutPool` | C++17 · OpenMP · `ctypes` · MuJoCo 4.0.1 | [mujoco-omp-rollout](https://github.com/cccjj55/mujoco-omp-rollout) (`v1.1.0`) · `docs/parallel_scaling.svg`：线程 `0.05×`、进程复用 `5.62×`、C++ OpenMP `11.11×` (`10.75M env-steps/s`)；`RolloutPool` 与 `mj_step` 逐元素对拍 `atol=1e-12` | ✅ 本机 + CI |
+| P1 有限元 CUDA/OpenMP 求解器 | C11 · OpenMP · CUDA · 8-color CSR · Jacobi PCG | [fem-diffusion-cuda](https://github.com/cccjj55/fem-diffusion-cuda) (`v1.2.0`) · `docs/fem_breakdown.svg` · `docs/gpu_cg.svg`：CPU `nx=400` `5.92×`、SpMV 撞 `61.9 GB/s` 墙；GPU SpMV `392.9 GB/s`、设备循环 CG `1.15×` (`159k`) / `2.91×` (`638k`)；非均匀介质 `--precond` 迭代 `2.96×` 缩减、耗时 `2.70×` 加速 | ✅ CPU + GPU |
+| CUDA/OpenMP Roofline 算子基准 | C11 · OpenMP · CUDA (`sm_120`) · 缓存分块 | [cuda-omp-roofline](https://github.com/cccjj55/cuda-omp-roofline) (`v1.2.0`) · `docs/roofline.svg` · `docs/kernels_gpu.svg`：CPU 逐元素校验 `max\|diff\|=1.19e-18`；GPU `axpy` `402.4 GB/s`、`matmul` `2286/444 GFLOP/s`、grid-stride `softmax` `8.65 Gelem/s` (`32.3×`) | ✅ CPU + GPU |
+| 2D Jacobi MPI 域分解 | C11 · OpenMPI · `Sendrecv` vs `Isend/Irecv` | [jacobi-halo-mpi](https://github.com/cccjj55/jacobi-halo-mpi) (`v1.1.0`) · `docs/scaling.svg` · CI 门禁：1/2/4/8 rank 与双通信模式全局 checksum 完全一致（`26285.462047`）；`1024²` `6.43×` vs `2048²` `3.25×`；单机实测 `isend` 慢于 `sendrecv` (`0.110` vs `0.050 ms/step`) | ✅ 本机 + CI |
+| 仿真步长 `dt` × 吞吐 Pareto | Python · MuJoCo · MJX · JAX | [sim-dt-pareto](https://github.com/cccjj55/sim-dt-pareto) · `docs/throughput.svg` · `results/latest.md` · CI：MuJoCo Python 循环稳在 `212k`，MJX CPU 从 `8→64 envs` 扩到 `522k` | 🟡 CPU + Pareto |
+| 仿真声明核验账本 | YAML schema · SVG 生成 · GitHub Actions | [sim-claims-ledger](https://github.com/cccjj55/sim-claims-ledger) (`v1.1.0`) · `docs/claims_overview.svg` · `data/claims.yaml` (`UPSTREAM` / `3P` / `MEASURED` 证据分级 + CI 校验) | ✅ 维护中 |
+| 可复现跑分插件 `dsh-plugin-bench` | Node.js · 双噪声闸门 (`spread` + `cv`) · 机器指纹 | [dsh-plugin-bench](https://github.com/cccjj55/dsh-plugin-bench) · 31 tests · 三平台 CI（含真实超时杀进程单测） | ✅ 跑通 |
+| `ncu` / `nsys` 深度剖析 | Nsight Compute / Systems | — | ⬜ 待抓 `ncu` kernel stall 报告 |
+
+**现在能用自己实测数据讲清的五件事**：
+1. **语言与并发边界**：为什么 Python `threading` 跑 MuJoCo 会跌到 `0.05×`、持久化多进程只能救到 `5.62×`、而 C++ OpenMP 线程私有 `mjData` 能把 `1body` 推到 `10.75M env-steps/s`（`11.11×`）以及 `6 物理核 / 12 线程` 对 `12body` 的硬上限。
+2. **内存墙与设备侧循环**：为什么 FEM 装配只占 `1.1%`、SpMV 越过 L3 后撞上 CPU `~58–62 GB/s` 和 GPU `392.9 GB/s` 带宽墙，以及为什么仅靠消灭 CG 主机同步能把小规模 `159k` DOF 从 `0.44×` 救回 `1.15×`。
+3. **算法调节条件数 > 微优化**：在 `k(x)=1+49x²` 的病态传导下，SpMV 已达带宽上限，换用最朴素的 Jacobi 预条件就把迭代从 `3,136` 降到 `1,061`（`2.70×` 墙钟提速）。
+4. **单机 MPI 非阻塞重叠的反直觉**：在共享内存宿主机内，把 `1024²` 行分块切碎并在内层边界手写 `MPI_Isend/Irecv` 等候，反而因软件状态机开销输给紧凑的 `MPI_Sendrecv`（`0.110` vs `0.050 ms/step`）。
+5. **GPU kernel 归约边界**：naive 单 block `softmax` 比 12 核 CPU 慢 `4.5×`，改成 grid-stride + warp shuffle 后提升 `32.3×` 且保持双精度误差 `< 1.2e-18`。
+
+---
+
+## B. 机器人仿真栈 / Robotics Simulation
+
+| 引擎 / 工具 | 用途 | 证据 | 状态 |
+| --- | --- | --- | --- |
+| **Gazebo Classic + Nav2** | 仓储 AMR 全栈（定位·规划·控制 + 任务 FSM） | [nav2-mission-fsm](https://github.com/cccjj55/nav2-mission-fsm) (`v0.2.0`) · 24 pytest + ROS 2 Humble 容器 CI（colcon + xacro + launch 校验） | ✅ |
+| **MuJoCo (Python & C API)** | 刚体动力学、GIL/进程/OpenMP rollout 与 C ABI 封装 | [mujoco-omp-rollout](https://github.com/cccjj55/mujoco-omp-rollout) (`v1.1.0`) & `backends/mujoco_cpu.py` | ✅ |
+| **MuJoCo MJX** | 向量化仿真 (`vmap` + `jit` + `fori_loop`) | [sim-dt-pareto](https://github.com/cccjj55/sim-dt-pareto) (`CPU 522k steps/s` 已测) | 🟡 CPU 跑通，待 GPU 采数 |
+| **Isaac Sim / Isaac Lab / Genesis** | 统一 `Backend.step(n)` 契约下的跨引擎对标 | 协议与基准表结构已就位 | ⬜ 计划中 |
+
+---
+
+## C. 实时控制、数据与规划 / Control, Data & Planning
 
 | 项目 | 技术栈 | 证据 | 状态 |
 | --- | --- | --- | --- |
-| 环境并行与 C++ 向量化 `parallel-envs` | C++17 · OpenMP · Python · MuJoCo 4.0.1 | [repo](https://github.com/cccjj55/parallel-envs) · `docs/parallel_scaling.svg` · CI (`v0.2.0`)：线程 `0.05×`、进程复用 `5.62×`、C++ OpenMP `11.11×` (`10.75M steps/s`) | ✅ 本机 + CI |
-| CAE 并行求解器 `cae-parallel-solver` | C11 · OpenMP · CUDA · 8-color CSR · CG | [repo](https://github.com/cccjj55/cae-parallel-solver) · `docs/fem_breakdown.svg` · `docs/gpu_cg.svg` (`v1.1.0`)：CPU `nx=400` `5.92×`、`nx=800` `61.9 GB/s` 墙；GPU SpMV `392.9 GB/s`、设备侧 CG `1.15×` (`159k`) / `2.91×` (`638k`) | ✅ CPU + GPU 跑通 |
-| MPI 域分解 `mpi-heat` | C11 · OpenMPI · 2D halo 交换 | [repo](https://github.com/cccjj55/mpi-heat) · `docs/scaling.svg` · CI (`v1.0.0`)：checksum 与 rank 无关；`1024²` `6.43×` vs `2048²` `3.25×` | ✅ 本机 + CI |
-| HPC 基线 kernel `hpc-kernels` | C11 · OpenMP · CUDA · 缓存分块 | [repo](https://github.com/cccjj55/hpc-kernels) · `docs/kernels.svg` · `docs/kernels_gpu.svg` (`v1.1.0`)：非零输入 + CPU `max|diff|` 校验；GPU `axpy` `402.4 GB/s`、`matmul` `2286/444 GFLOP/s`、grid-stride `softmax` `8.65 Gelem/s` (`32.3×`) | ✅ CPU + GPU 跑通 |
-| 仿真吞吐基准 `sim-throughput-benchmark` | Python · MuJoCo · MJX · JAX | [repo](https://github.com/cccjj55/sim-throughput-benchmark) · `docs/throughput.svg` · `results/latest.md` · CI (`v1.0.0`) | ✅ CPU 基线 + Pareto；GPU 待采 |
-| 文献值对照表 `robot-sim-benchmarks` | 论文/仓库声明 + 硬件 + 版本 + 证据标签 | [repo](https://github.com/cccjj55/robot-sim-benchmarks) · `data/claims.yaml` (`UPSTREAM` / `3P` / `MEASURED` 三级 + CI `check_claims.py`) | ✅ 维护中 |
-| 可复现跑分工具 `dsh-plugin-bench` | Node.js · 双噪声闸门 (`spread` + `cv`) · 指纹 | [repo](https://github.com/cccjj55/dsh-plugin-bench) · 31 tests · 三平台 CI (`v1.0.0`) | ✅ 跑通 |
-| `ncu` / `nsys` 深度剖析 | Nsight Compute / Systems · Roofline | — | ⬜ 工具待抓 `ncu` 报告 |
-
-**能说的话**：现在能用自己实测的数据讲清四件事——① 为什么 Python 多线程跑 MuJoCo 会跌到 `0.05×`、C++ OpenMP 如何把 `1body` 推到 `10.75M steps/s`（`11.11×`）以及 `6c/12t` 物理核边界；② 为什么 FEM 里装配只占 `1.1%`、SpMV 占 `77.9%` 且越过 L3 后撞上 `~58–62 GB/s` CPU DRAM 墙，而 GPU 上 SpMV 撞上 `392.9 GB/s` 拷贝带宽、设备侧循环把小规模 CG 从 `0.44×` 救到 `1.15×`；③ 为什么 naive 单 block GPU softmax 会比 12 核 CPU 慢 `4.5×` 而 grid-stride + warp shuffle 可提速 `32.3×`；④ 为什么分母带噪声的加速比不可引用。**还不能**讲"我用 `ncu` 分析过某 kernel 的 occupancy 与 stall 分布"。
+| 伺服帧协议与抖动剖析 | Python · `CRC-16/CCITT-FALSE` · P50/P95/P99 CSV 复算 | [servo-frame-probe](https://github.com/cccjj55/servo-frame-probe) · 9 个单测 · `jitter_report.py`（固件上板前仅用合成 CSV 验证工具链） | ✅ 协议与工具 |
+| 示教轨迹清洗管线 | Python · 重采样 · `k×MAD` 离群剔除 · Dataset Card | [lerobot-qc-pipeline](https://github.com/cccjj55/lerobot-qc-pipeline) · 合成数据端到端报告 + 卡模板 | 🟡 合成数据跑通 |
+| RRT + DWA + PPO 混合规划器 | Python · 全局 RRT · 局部 DWA · PPO 在线调权 | [rrt-dwa-ppo-planner](https://github.com/cccjj55/rrt-dwa-ppo-planner) | ✅ |
+| 多机场机队离散事件仿真 | 多智能体 · 离散事件调度 | [fleet-sim-multiairport](https://github.com/cccjj55/fleet-sim-multiairport) | ✅ |
 
 ---
 
-## B. 机器人仿真栈 / Simulation
+## D. CAE / 多物理场研究背景
 
-| 引擎 | 用途 | 证据 | 状态 |
+| 方向 | 工具与物理问题 | 成果与对应代码库 | 状态 |
 | --- | --- | --- | --- |
-| **Gazebo Classic + Nav2** | 仓储 AMR 全栈（定位·规划·控制） | [ros2-warehouse-amr](https://github.com/cccjj55/ros2-warehouse-amr)，一条命令起，CI 校验 launch (`v0.2.0`) | ✅ |
-| **MuJoCo (Python & C API)** | 刚体动力学、多线程/多进程/OpenMP rollout | [parallel-envs](https://github.com/cccjj55/parallel-envs) (`mujoco 4.0.1` C API + `mujoco.rollout` + `mj_step`) & `backends/mujoco_cpu.py` | ✅ |
-| **MuJoCo MJX** | 向量化仿真 | `backends/mjx.py`（vmap + jit + fori_loop，CPU `522k steps/s` 已测） | 🟡 CPU 跑通，待 GPU 采数 |
-| **Isaac Sim / Isaac Lab** | PhysX 5 并行环境、合成数据 | — | ⬜ 计划中 |
-| Genesis / ManiSkill3 | 备选后端（同一 harness 插拔） | — | ⬜ |
-
-**为什么按引擎分**：同一个任务在不同引擎上的**物理保真度**和**吞吐**是两件事。`sim-throughput-benchmark` 设计成可插拔（`Backend.step(n)`），而 `parallel-envs` 专门切开调度与语言边界（Python loop / GIL / IPC / C++ OpenMP）。
+| PEM 电解水多物理场建模与实验对标 | COMSOL Multiphysics · Simulink · 两相流/电化学/热耦合 | **第一作者 IJHE 2025**（Q1, IF 8.1）+ 合作 Q1 论文 2 篇 + 已授权发明专利 2 项 | ✅ |
+| 非结构化有限元并行求解 | C11 · OpenMP · 8-color CSR 装配 · CUDA CG/PCG | [fem-diffusion-cuda](https://github.com/cccjj55/fem-diffusion-cuda) | ✅ |
+| 结构/热力学与车体集成 | ANSYS Mechanical/Thermal · 车体多工况力学 | 大学生方程式（FSAE）与工程车辆集成背景 | ✅ |
 
 ---
 
-## C. 实时控制 / Real-time
+## 技术栈诚实分级（面试对照）
 
-| 项目 | 技术栈 | 证据 | 状态 |
+| 类别 | ✅ 有代码与实测数据 | 🟡 跑通过基线/工具链 | ⬜ 学习与规划中 |
 | --- | --- | --- | --- |
-| 关节伺服通信与度量 `rt-joint-control` | STM32 · 二进制帧 + CRC-16 · Python 工具链 | [repo](https://github.com/cccjj55/rt-joint-control) · 9 个单测 · `jitter_report.py` | ✅ 协议与工具 |
-| 1 kHz 回路抖动（三配置） | CFS / `SCHED_FIFO` / PREEMPT_RT · 逻辑分析仪 | 表结构已定 | ⬜ 待上板实测 |
-| 端到端时延四段分解 | 采样→总线→计算→PWM | 同上 | ⬜ |
+| **仿真与机器人** | MuJoCo (Python & C API) · Gazebo Classic · Nav2 · URDF/Xacro | MJX (CPU) · LeRobot 清洗流程 | Isaac Sim / Isaac Lab · Genesis · ManiSkill3 |
+| **HPC & 并行** | C11 / C++17 · OpenMP · OpenMPI · CUDA（`axpy`/`reduce`/`softmax`/`matmul`/CSR SpMV/设备循环 CG）· 图着色 CSR · Jacobi PCG · 缓存分块 | JAX (CPU) | Triton · NCCL · `ncu` / `nsys` · Ray |
+| **实时与工具** | STM32 / 二进制帧 + CRC-16 · Python · pytest · Docker · GitHub Actions | Linux PREEMPT_RT 指标口径 · WSL2 | EtherCAT · HIL（dSPACE/Speedgoat） |
+| **CAE** | COMSOL · ANSYS · Simulink | CarSim | Icepak |
 
----
-
-## D. 具身数据 / Embodied data
-
-| 项目 | 技术栈 | 证据 | 状态 |
-| --- | --- | --- | --- |
-| 示教数据管线 `embodied-data-pipeline` | Python · JSONL · MAD 剔除 · 重采样 · LeRobot 格式 | [repo](https://github.com/cccjj55/embodied-data-pipeline) · `reports/` · 数据集卡片模板 | 🟡 管线跑通（**合成数据**） |
-| 真机示教 20 条 + BC baseline | LeRobot · ACT / Diffusion Policy | — | ⬜ |
-| 数据卡（dataset card） | 数据画像 / 已知缺陷 / 基线 | `dataset_card.md` 模板 | ✅ |
-
----
-
-## E. 规划与调度 / Planning & scheduling
-
-| 项目 | 技术栈 | 证据 | 状态 |
-| --- | --- | --- | --- |
-| RRT + DWA + PPO 规划器 | Python · RRT · DWA · PPO | [repo](https://github.com/cccjj55/rrt-dwa-ppo-planner) | ✅ |
-| 多机场机队仿真 `fleet-sim` | 多智能体 · 调度 · 离散事件 | [repo](https://github.com/cccjj55/fleet-sim-multiairport) | ✅ |
-| 多机 AMR 任务分配 | 拍卖分配 · Nav2 多命名空间 | — | ⬜ 与 fab AMHS 同一类问题 |
-
----
-
-## F. CAE / 多物理场
-
-| 项目 | 技术栈 | 证据 | 状态 |
-| --- | --- | --- | --- |
-| PEM 电解水仿真与实验对标 | COMSOL 多物理场 · Simulink · 参数扫描 | **第一作者 IJHE 2025**（Q1, IF 8.1）+ 合作 2 篇 + 2 项专利 | ✅ |
-| 有限元并行计算 | C11 · OpenMP · 8-color CSR 装配 · CG | [cae-parallel-solver](https://github.com/cccjj55/cae-parallel-solver)（~64 万自由度实测与带宽墙分析） | ✅ |
-| 结构/热仿真 | ANSYS Mechanical / Thermal | 转子发动机、AGV 车体多场景力学 | ✅ |
-| 代理模型（AI4CAE） | Python · MLP / GP · 数据来自 COMSOL 扫描 | — | ⬜ 计划 |
-
----
-
-## 技术栈总表（三级，不许模糊）
-
-| 类别 | ✅ 有代码/有数据 | 🟡 跑通过 demo | ⬜ 在读/未开始 |
-| --- | --- | --- | --- |
-| **仿真引擎** | Gazebo Classic · MuJoCo (Python & C API) | MJX (CPU) | Isaac Sim / Isaac Lab · Genesis · ManiSkill3 |
-| **HPC / 并行** | C11 / C++17 · OpenMP · OpenMPI · CUDA（axpy/reduce/softmax/matmul/CSR SpMV/设备侧 CG） · 缓存分块 · 图着色 CSR 装配 | JAX (CPU) | Triton · Ray · NCCL · `ncu` / `nsys` · K8s · vLLM |
-| **实时系统** | STM32 · PID · 二进制协议 | PREEMPT_RT · WSL/Linux | EtherCAT · HIL（Speedgoat/dSPACE） |
-| **数据与工程** | Python · Git · Docker · GitHub Actions · pytest/CI 门禁 · pandas/JSONL | Shell 脚本 · LeRobot 格式 | Parquet · webdataset · CMake · 无锁队列 |
-| **CAE** | COMSOL · ANSYS（结构/热） · Simulink | CarSim | Icepak/Flotherm |
-
-**用法**：面试时只说 ✅ 那一列；🟡 说"跑通过 demo，还没自己做深度工程"；⬜ 一律说"在学"。
-
----
-
-## 复现清单 / Reproductions（"借别人成果"的正确姿势）
-
-想把别人的东西放到自己主页，**只有一种合法做法：自己跑一遍，署名上游，报自己的数**。
-
-| 上游 | 我要复现/借鉴什么 | 署名格式 / 落点 | 状态 |
-| --- | --- | --- | --- |
-| [mujoco_mpc](https://github.com/google-deepmind/mujoco_mpc) / [EnvPool](https://github.com/sail-sg/envpool) | 线程私有 `mjData` + C++ OpenMP 批量 rollout 架构 | 已实现于 [parallel-envs](https://github.com/cccjj55/parallel-envs) 并附 `NOTICE.md`，12 线程实测 `10.75M env-steps/s` | ✅ |
-| [Nav2](https://github.com/ros-navigation/navigation2) bringup | 已复现并二次封装 | 已在 README 与 `NOTICE.md` 标注 | ✅ |
-| [MuJoCo Playground](https://github.com/google-deepmind/mujoco_playground) / MJX | GPU 端任务吞吐（env 数 × device） | `Reproduced from mujoco_playground@<sha>, measured on RTX 5070 Ti Laptop 12 GB` | ⬜ |
-| [Isaac Lab](https://github.com/isaac-sim/IsaacLab) 基准任务 | 同任务吞吐与显存 | 同上格式 | ⬜ |
-| [LeRobot](https://github.com/huggingface/lerobot) | 数据集格式 + ACT/DP 训练 | `Trained with lerobot@<sha> on <my dataset>` | ⬜ |
-
-**三条底线**：
-1. 别人的 GIF/截图 **不当自己的 demo** 发，只能作为"上游效果"引用并注明。
-2. 数字必须是自己机器上测的，写清硬件、版本、commit。
-3. 有上游思路/代码参考的地方，在 `NOTICE.md` 里写清。
+**口头原则**：✅ 行能现场打开代码、跑出命令、讲出数字出处和负优化对照；🟡 行明确说"基线已通、GPU 或真机闭环还在补"；⬜ 行直接说"尚未实操"。

@@ -1,27 +1,27 @@
-**Robot simulation · Multiphase CAE · Real-time control.** Currently measuring how fast simulators actually run, and at what accuracy.
+Hi, I'm **Zeyi Chen (陈泽一)** — M.Sc. Mechanical Engineering @ Zhejiang University (B.Eng. @ CSU).
 
-[![CI](https://github.com/cccjj55/ros2-warehouse-amr/actions/workflows/ci.yml/badge.svg)](https://github.com/cccjj55/ros2-warehouse-amr/actions)
+My path started in **multiphysics PEM electrolyzer simulation** (COMSOL / Simulink, 3 Q1 papers including 1st-author in *IJHE*, 2 granted patents) and Formula-style vehicle integration. That pulled me into a habit I couldn't drop when moving into robotics and GPU computing: **whenever a simulator or solver claims "10× faster", I pin the hardware, check numerical equivalence against a serial reference (`max|diff|` or exact checksum), and measure where time actually goes** — keeping negative results (`0.05×` GIL contention, `0.44×` CUDA host sync, intra-node `MPI_Isend` overhead) right next to the wins.
 
-**Embodied simulation & control**
+[![CI](https://github.com/cccjj55/nav2-mission-fsm/actions/workflows/ci.yml/badge.svg)](https://github.com/cccjj55/nav2-mission-fsm/actions)
 
-- [parallel-envs](https://github.com/cccjj55/parallel-envs) — MuJoCo envs: serial vs threads vs processes vs C++ OpenMP ![v](https://img.shields.io/github/v/release/cccjj55/parallel-envs?display_name=tag&style=flat&color=0f766e)
-- [sim-throughput-benchmark](https://github.com/cccjj55/sim-throughput-benchmark) — env-steps/s and the dt→accuracy frontier ![v](https://img.shields.io/github/v/release/cccjj55/sim-throughput-benchmark?display_name=tag&style=flat&color=0f766e)
-- [robot-sim-benchmarks](https://github.com/cccjj55/robot-sim-benchmarks) — published claims, with hardware and evidence labels ![v](https://img.shields.io/github/v/release/cccjj55/robot-sim-benchmarks?display_name=tag&style=flat&color=0f766e)
-- [ros2-warehouse-amr](https://github.com/cccjj55/ros2-warehouse-amr) — ROS 2 AMR: Nav2 + mission FSM, 24 tests ![v](https://img.shields.io/github/v/release/cccjj55/ros2-warehouse-amr?display_name=tag&style=flat&color=0f766e)
-- [rt-joint-control](https://github.com/cccjj55/rt-joint-control) — 1 kHz framing, resync, jitter analysis ![v](https://img.shields.io/github/v/release/cccjj55/rt-joint-control?display_name=tag&style=flat&color=0f766e)
-- [embodied-data-pipeline](https://github.com/cccjj55/embodied-data-pipeline) — demonstrations → LeRobot, with a dataset card ![v](https://img.shields.io/github/v/release/cccjj55/embodied-data-pipeline?display_name=tag&style=flat&color=0f766e)
+### Embodied Simulation & Robotics Stack
 
-**HPC & numerical simulation**
+- [mujoco-omp-rollout](https://github.com/cccjj55/mujoco-omp-rollout) — MuJoCo `mj_step` across Python threads (`0.05×`), persistent multiprocessing (`5.62×`), `mujoco.rollout`, and a reusable C++17 OpenMP `RolloutPool` (`11.11×` / `10.75M env-steps/s`, `atol=1e-12`) ![v](https://img.shields.io/github/v/release/cccjj55/mujoco-omp-rollout?display_name=tag&style=flat&color=0f766e)
+- [sim-dt-pareto](https://github.com/cccjj55/sim-dt-pareto) — paired throughput (`env-steps/s`) vs integrator step `dt` RMSE frontier (`MuJoCo` CPU flat at `212k` vs `MJX` CPU scaling to `522k`) ![v](https://img.shields.io/github/v/release/cccjj55/sim-dt-pareto?display_name=tag&style=flat&color=0f766e)
+- [sim-claims-ledger](https://github.com/cccjj55/sim-claims-ledger) — reproducible claims ledger tracking hardware, version, and `UPSTREAM / 3P / MEASURED` evidence pills (`docs/claims_overview.svg`) ![v](https://img.shields.io/github/v/release/cccjj55/sim-claims-ledger?display_name=tag&style=flat&color=0f766e)
+- [nav2-mission-fsm](https://github.com/cccjj55/nav2-mission-fsm) — ROS 2 Humble warehouse AMR: Nav2 bringup wrapper + ROS-free mission FSM (24 unit tests in 0.2 s) ![v](https://img.shields.io/github/v/release/cccjj55/nav2-mission-fsm?display_name=tag&style=flat&color=0f766e)
+- [servo-frame-probe](https://github.com/cccjj55/servo-frame-probe) — 1 kHz binary servo frame protocol (`CRC-16/CCITT-FALSE` over `seq..payload`) and P50/P95/P99 jitter analyzer ![v](https://img.shields.io/github/v/release/cccjj55/servo-frame-probe?display_name=tag&style=flat&color=0f766e)
+- [lerobot-qc-pipeline](https://github.com/cccjj55/lerobot-qc-pipeline) — trajectory resampling, `k×MAD` outlier filtering, and dataset card checks prior to BC/ACT training ![v](https://img.shields.io/github/v/release/cccjj55/lerobot-qc-pipeline?display_name=tag&style=flat&color=0f766e)
 
-- [cae-parallel-solver](https://github.com/cccjj55/cae-parallel-solver) — FEM assembly + CG on CPU and GPU; device loop 2.91× (638k) / 1.15× (159k), 392.9 GB/s SpMV ![v](https://img.shields.io/github/v/release/cccjj55/cae-parallel-solver?display_name=tag&style=flat&color=0f766e)
-- [hpc-kernels](https://github.com/cccjj55/hpc-kernels) — axpy / softmax / matmul across C, OpenMP and CUDA (CPU-verified; softmax 32.3× rewrite) ![v](https://img.shields.io/github/v/release/cccjj55/hpc-kernels?display_name=tag&style=flat&color=0f766e)
-- [mpi-heat](https://github.com/cccjj55/mpi-heat) — 2D Jacobi halo exchange; 6.43× at 1024², 3.25× at 2048² ![v](https://img.shields.io/github/v/release/cccjj55/mpi-heat?display_name=tag&style=flat&color=0f766e)
+### HPC & Multiphysics Solvers
 
-**Tooling**
+- [fem-diffusion-cuda](https://github.com/cccjj55/fem-diffusion-cuda) — 2D P1 FEM assembly (8-color lock-free CSR) + CG on CPU & CUDA: device loop lifts `159k` DOF from `0.44×` to `1.15×` (`2.91×` at `638k`, `392.9 GB/s` SpMV); Jacobi PCG cuts graded-diffusivity iterations `2.96×` (`2.70×` wall speedup) ![v](https://img.shields.io/github/v/release/cccjj55/fem-diffusion-cuda?display_name=tag&style=flat&color=0f766e)
+- [cuda-omp-roofline](https://github.com/cccjj55/cuda-omp-roofline) — `axpy` / `reduce` / `softmax` / `matmul` across C11, OpenMP, and CUDA (`sm_120`): CPU-verified (`max|diff|=1.19e-18`), grid-stride `softmax` `32.3×`, plus generated log-log roofline plot ![v](https://img.shields.io/github/v/release/cccjj55/cuda-omp-roofline?display_name=tag&style=flat&color=0f766e)
+- [jacobi-halo-mpi](https://github.com/cccjj55/jacobi-halo-mpi) — 2D Jacobi domain decomposition (`MPI_Sendrecv` vs non-blocking `MPI_Isend/Irecv` interior overlap), rank-invariant checksum gates, and L3-threshold (`6.43×` @ `1024²` vs `3.25×` @ `2048²`) + intra-node overlap analysis ![v](https://img.shields.io/github/v/release/cccjj55/jacobi-halo-mpi?display_name=tag&style=flat&color=0f766e)
 
-- [dsh-plugin-bench](https://github.com/cccjj55/dsh-plugin-bench) — benchmark a command with two noise gates and a fingerprint ![v](https://img.shields.io/github/v/release/cccjj55/dsh-plugin-bench?display_name=tag&style=flat&color=0f766e)
-- [dsh-plugin-wsl](https://github.com/cccjj55/dsh-plugin-wsl) — run bash inside WSL from dsh ![v](https://img.shields.io/github/v/release/cccjj55/dsh-plugin-wsl?display_name=tag&style=flat&color=0f766e)
+### Reproducibility Tooling
 
-M.Sc. @ Zhejiang University · 3 Q1 papers (1 first-author) · 2 granted patents
+- [dsh-plugin-bench](https://github.com/cccjj55/dsh-plugin-bench) — command runner with dual noise gates (`spread` + `cv`), baseline delta tracking, and hardware fingerprinting (31 tests across Linux/Windows/macOS) ![v](https://img.shields.io/github/v/release/cccjj55/dsh-plugin-bench?display_name=tag&style=flat&color=0f766e)
+- [dsh-plugin-wsl](https://github.com/cccjj55/dsh-plugin-wsl) — run Linux toolchain builds cleanly inside WSL2 from Windows workflows ![v](https://img.shields.io/github/v/release/cccjj55/dsh-plugin-wsl?display_name=tag&style=flat&color=0f766e)
 
-[Portfolio by category](https://github.com/cccjj55/cccjj55/blob/main/PORTFOLIO.md) · [project details](https://github.com/cccjj55/cccjj55/blob/main/PROJECTS.md)
+> More notes: [Portfolio evidence matrix](https://github.com/cccjj55/cccjj55/blob/main/PORTFOLIO.md) · [Architecture & negative results](https://github.com/cccjj55/cccjj55/blob/main/PROJECTS.md)
