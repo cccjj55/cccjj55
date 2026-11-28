@@ -29,7 +29,15 @@
 
 ---
 
-## 2. 高性能计算与数值求解（HPC / CAE）
+## 2. 高性能计算与数值求解（HPC / CAE / EDA）
+
+### [chiplet-signoff-cuda](https://github.com/cccjj55/chiplet-signoff-cuda) ✅ 本机 GPU + `ncu` + CI 闭环（`v1.0.0`）
+
+针对 2.5D Chiplet 封装真实物理工况（`12×12 mm` 双计算 Die + 双 HBM3 栈 + `87×` 硅/TIM 导热落差 + C4 Bump PDN 供电网格，支持 Matrix Market `.mtx` 导入导出）对比 4 套 GPU 求解架构，以 CPU 24 线程 OpenMP 与 **NVIDIA `cuSPARSE` + `cuBLAS`** 为对照，并强制校验能量/基尔霍夫电流守恒（`< 2e-11`）：
+
+- **`1024×1024`（105 万节点，工作集溢出 L2）**：`cuda_mixed_fp32_rbgs`（单位范数归一化的 FP32 对称红黑 Gauss-Seidel 内循环 + FP64 真实残差外精化）在 Thermal 工况达到 **`1,342.8 ms`**（**`2.02×` 于 `cuSPARSE` / `25.9×` 于 24t CPU**，`T = 51.25–127.17 °C`），PDN IR-Drop 工况 **`845.7 ms`**（**`2.27×` 于 `cuSPARSE` / `18.2×` 于 CPU**，最大压降 `69.2 mV`），且外层精化将相对残差压至 `1.2e-11` / `3.6e-12`（比 `cuSPARSE` 更紧）。
+- **`512×512` 规模反转（诚实边界）**：在 `262k` 节点下，由于启动延迟占比突出，每步仅 4 次 kernel、零主机同步的 `cuda_fused_fp64_jacobi` 跑赢 8 次启动的 RB-GS（IR-Drop **`123.9 ms` / `2.67×` 于 `cuSPARSE`**），而 `cuSPARSE + cuBLAS` 因每步 3 次 `cublasDdot` 主机同步反而在 `512²` 上不敌 CPU（`330.5 ms` vs `239.3 ms`）。
+- **Nsight Compute (`ncu 2025.1.0, CC 12.0`) 硬件计数实锤**：`fused_spmv_dot_fp32` 相对 `cuSPARSE SpMV`（L1 `17.0%`, Occ `64.1%`, Read `76.1 MB`）将 L1 命中率提到 **`72.5%`**、occupancy 提到 **`94.6%`**，并将单次 SpMV DRAM 读流量砍掉 `33.4%`（`50.3 MB`）。
 
 ### [fem-diffusion-cuda](https://github.com/cccjj55/fem-diffusion-cuda) ✅ CPU + CUDA 实测（`v1.2.0`）
 
@@ -39,13 +47,12 @@
 - **GPU 主机同步陷阱与设备侧循环**：RTX 5070 Ti 上 CSR SpMV 跑满 **`392.9 GB/s`**（基本等于显存拷贝速率 `392.3 GB/s`）；但第一版每步 CG 三次回传标量同步主机，让 `159k DOF` 比 CPU 还慢（**`0.44×`**）。把整条 CG 循环搬进设备侧（`cg_cuda_dev.cu`）后，`159k` 翻回 `1.15×`（`56 ms`），`638k` 提到 `2.91×`（`331 ms`）。
 - **当 SpMV 撞墙后，预条件才是最值钱的杠杆**：开启空间非均匀扩散系数 `--graded`（`k(x) = 1 + 49x²`）时，`nx=400`（12 线程）无预条件 CG 需要 `3,136` 次迭代（`453.1 ms`）；加上轻量的 `--precond` Jacobi 对角缩放后，在完全相同的误差精度（`L2 = 3.1154e-06`）下迭代降到 **`1,061` 次（减少 `2.96×`）**，总耗时缩至 **`167.7 ms`（`2.70×` 提速）**。
 
-### [cuda-omp-roofline](https://github.com/cccjj55/cuda-omp-roofline) ✅ CPU + CUDA Roofline（`v1.2.0`）
+### [cuda-omp-roofline](https://github.com/cccjj55/cuda-omp-roofline) ✅ CPU + CUDA + `cuBLAS` + `ncu`（`v1.3.0`）
 
-`axpy` / `reduce` / `softmax` / `matmul` 从 C11 到 OpenMP 再到 CUDA（`sm_120`），坚持**非零确定性输入 + 计时前对 CPU 参考解做 `max|diff|` 校验**，并由 `scripts/plot_roofline.py` 自动绘制 `docs/roofline.svg`：
+`axpy` / `reduce` / `softmax` / `matmul` 从 C11 到 OpenMP 再到 CUDA（`sm_120`），坚持**非零确定性输入 + 计时前对 CPU / `cuBLAS` 参考解做偏差校验**，自动绘制 `docs/roofline.svg` 与 `docs/gemm_cublas_ncu.svg`：
 
-- **带宽斜率**：CPU `axpy` 测得 `58.35 GB/s`，GPU `axpy` 达 `402.40 GB/s`，warp-shuffle `reduce` 达 `417.9 GB/s`。
-- **算力屋顶与 FP64 裁剪**：GPU 分块 `matmul` 测得 `2,285.91 GFLOP/s`（FP32）vs `444.42 GFLOP/s`（FP64，受限于消费级显卡 FP64 单元比例，约 `5.1×` 落差）；CPU 缓存分块 + OpenMP `matmul` 为 `70.62 GFLOP/s`。
-- **`softmax` 反面教材**：初版单 block 归约只有 `0.2679 Gelem/s`（慢于 12 核 CPU）；重写为 grid-stride 两遍归约 + 设备端标量后跳到 **`8.6532 Gelem/s`**（相对初版 **`32.3×`**、相对 CPU **`7.2×`**，`max|diff| = 1.19e-18`）。
+- **带宽斜率与消费级 FP64 裁剪**：CPU `axpy` `58.35 GB/s`、GPU `axpy` `402.40 GB/s`、warp-shuffle `reduce` `417.9 GB/s`；FP32 vs FP64 分块 `matmul` 为 `2,285.91` vs `444.42 GFLOP/s`（`5.1×` 落差）；grid-stride `softmax` 相对单 block 版提速 **`32.3×`**（`8.6532 Gelem/s`，`max|diff|=1.19e-18`）。
+- **自研 GEMM → `cuBLAS` Tensor Core 与 `ncu` 硬件诊断（`n=2048`）**：`gemm_smem_32x32`（`1.33 TFLOP/s`）在 `66.7%` occupancy 下却遭遇 **`2,965.6%` `MIO Throttle`（共享内存管线严重拥堵）**；加入无 bank 冲突 `4×4` 寄存器分块 + `float4` 加载后 MIO stall 降至 `1,142.9%`、算力跳至 **`5.90 TFLOP/s`（`n=1024` 达 `7.14 TFLOP/s`）**；而 CUTLASS `cuBLAS` 主动降到 **`8.3%–16.6%` occupancy** 以分配大寄存器分块，把 MIO stall 压到 `2.3%–7.6%`，跑出 **`18.64 TFLOP/s`（FP32 SIMT）**、**`24.69 TFLOP/s`（TF32）** 与 **`55.33 TFLOP/s`（FP16 Tensor Core）**。
 
 ### [jacobi-halo-mpi](https://github.com/cccjj55/jacobi-halo-mpi) ✅ 本机 + CI + 反直觉实测（`v1.1.0`）
 

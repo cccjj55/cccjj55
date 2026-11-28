@@ -15,8 +15,9 @@ My path started in **multiphysics PEM electrolyzer simulation** (COMSOL / Simuli
 
 ### HPC & Multiphysics Solvers
 
+- [chiplet-signoff-cuda](https://github.com/cccjj55/chiplet-signoff-cuda) — 2.5D Chiplet thermal (`51.2–127.2 °C`) & PDN IR-drop (`69.2 mV`) solver: mixed FP32-RBGS + FP64 IR beats NVIDIA `cuSPARSE` **`2.02×–2.27×`** (`25.9×` vs 24t CPU) at `1024²`, Kirchhoff balance `< 2e-11`, backed by `ncu` hardware counters ![v](https://img.shields.io/github/v/release/cccjj55/chiplet-signoff-cuda?display_name=tag&style=flat&color=0f766e)
+- [cuda-omp-roofline](https://github.com/cccjj55/cuda-omp-roofline) — `axpy` / `reduce` / `softmax` (`32.3×`) / GEMM (`4×4` reg-tile `7.14 TFLOP/s` vs `cuBLAS` FP32 `18.6` / FP16 Tensor Core `55.33 TFLOP/s`) + `ncu` MIO-stall profiling & roofline plot ![v](https://img.shields.io/github/v/release/cccjj55/cuda-omp-roofline?display_name=tag&style=flat&color=0f766e)
 - [fem-diffusion-cuda](https://github.com/cccjj55/fem-diffusion-cuda) — 2D P1 FEM assembly (8-color lock-free CSR) + CG on CPU & CUDA: device loop lifts `159k` DOF from `0.44×` to `1.15×` (`2.91×` at `638k`, `392.9 GB/s` SpMV); Jacobi PCG cuts graded-diffusivity iterations `2.96×` (`2.70×` wall speedup) ![v](https://img.shields.io/github/v/release/cccjj55/fem-diffusion-cuda?display_name=tag&style=flat&color=0f766e)
-- [cuda-omp-roofline](https://github.com/cccjj55/cuda-omp-roofline) — `axpy` / `reduce` / `softmax` / `matmul` across C11, OpenMP, and CUDA (`sm_120`): CPU-verified (`max|diff|=1.19e-18`), grid-stride `softmax` `32.3×`, plus generated log-log roofline plot ![v](https://img.shields.io/github/v/release/cccjj55/cuda-omp-roofline?display_name=tag&style=flat&color=0f766e)
 - [jacobi-halo-mpi](https://github.com/cccjj55/jacobi-halo-mpi) — 2D Jacobi domain decomposition (`MPI_Sendrecv` vs non-blocking `MPI_Isend/Irecv` interior overlap), rank-invariant checksum gates, and L3-threshold (`6.43×` @ `1024²` vs `3.25×` @ `2048²`) + intra-node overlap analysis ![v](https://img.shields.io/github/v/release/cccjj55/jacobi-halo-mpi?display_name=tag&style=flat&color=0f766e)
 
 ### Reproducibility Tooling
